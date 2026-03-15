@@ -1091,6 +1091,23 @@ double FsGroundProperty::MoveDevice(
 	return rightNow;
 }
 
+//251105 add
+//YsVec3 ApproximateGroundNormal(FsGround *ground, const YsVec3 &pos)
+//{
+//    const double delta = 1.0;
+//    double h0 = ground->GetHeight(pos);
+//    double hx = ground->GetHeight(pos + YsVec3(delta, 0.0, 0.0));
+//    double hz = ground->GetHeight(pos + YsVec3(0.0, 0.0, delta));
+//
+//    YsVec3 dx(delta, hx - h0, 0.0);
+//    YsVec3 dz(0.0, hz - h0, delta);
+//    YsVec3 n = dx ^ dz;
+//    n.Normalize();
+//
+//    return n;
+//}
+
+
 void FsGroundProperty::Move(
     YsVec3 &motionPathOffset,YSSIZE_T &motionPathIndex,YSBOOL useMotionPathOffset,
 	YSSIZE_T nMpathPnt,const YsVec3 mpathPnt[],YSBOOL mpathIsLoop, /* const YsSceneryPointSet *motionPath, */
@@ -1136,17 +1153,102 @@ void FsGroundProperty::Move(
 
 		const double absv=staSpeed.GetLength();
 		const double driftThr=chManSpeed3-(chManSpeed3-chManSpeed2)*fabs(staSteering);
-		if(absv<driftThr)
-		{
-			staSpeed.Set(0.0,0.0,v);
-			staDrift=YSFALSE;
-		}
-		else
-		{
-			staSpeed.SetZ(v);
-			staSpeed.RotateXZ(-staRotation*dt);
-			staDrift=YSTRUE;
-		}
+
+//  may be original code
+//		if(absv<driftThr)
+//		{
+//			staSpeed.Set(0.0,0.0,v);
+//			staDrift=YSFALSE;
+//		}
+//		else
+//		{
+//			staSpeed.SetZ(v);
+//			staSpeed.RotateXZ(-staRotation*dt);
+//			staDrift=YSTRUE;
+//		}
+
+
+//-- 260304-- fixed
+
+YsVec3 nomW = belongTo->terrainNom;
+if(nomW.GetSquareLength()>YsTolerance)
+{
+    nomW.Normalize();
+    if(nomW.y()<0.0)  // 念のため上向きへ
+    {
+        nomW = -nomW;
+    }
+}
+else
+{
+    nomW = YsYVec();
+}
+
+// optional: 離陸を邪魔したくないなら、ここを後で復活させる
+// const YSBOOL nearGround = YSTRUE;  // まずは常時適用で挙動確認
+
+if(absv<driftThr)
+{
+    YsVec3 dirL(0.0,0.0,1.0);  // ローカル前進
+
+    YsVec3 dirW;
+    staAttitude.Mul(dirW,dirL);
+
+    // 接線へ射影（地面に沿わせる）
+    dirW = dirW - (dirW*nomW)*nomW;  //world projection
+    if(dirW.GetSquareLength()>YsTolerance)
+    {
+        dirW.Normalize();
+    }
+    else
+    {
+       staAttitude.Mul(dirW,dirL);  // 元に戻す（安全）
+    }
+
+    staAttitude.MulInverse(dirL,dirW);          // world -> local
+    if(dirL.GetSquareLength()>YsTolerance)
+    {
+       dirL.Normalize();
+    }
+    else
+    {
+       dirL = YsZVec();
+    }
+
+    staSpeed = dirL*v;
+    staDrift = YSFALSE;
+
+}
+else
+{
+    YsVec3 dirL(0.0,0.0,1.0);
+    dirL.RotateXZ(-staRotation*dt);  // 従来のドリフト方向付け（ローカル）
+
+    YsVec3 dirW;
+    staAttitude.Mul(dirW,dirL);
+
+    // ドリフト中も接線へ射影（まずは常時）
+    dirW = dirW - (dirW*nomW)*nomW;  // world projection
+    if(dirW.GetSquareLength()>YsTolerance)
+    {
+        dirW.Normalize();
+    }
+    else
+    {
+        staAttitude.Mul(dirW,dirL);  // 元に戻す（安全）
+    }
+
+    staAttitude.MulInverse(dirL,dirW);          // world -> local
+    if(dirL.GetSquareLength()>YsTolerance)
+    {
+       dirL.Normalize();
+    }
+
+      staSpeed = dirL * v;
+      staDrift = YSTRUE;
+}
+
+//-- 260304 fix end
 
 		switch(staWoc)
 		{

@@ -332,8 +332,11 @@ void FsAirplaneProperty::Initialize(void)
 	chMaxInputSSA=0.0;
 	chMaxInputROLL=0.0;
 
-	chManSpeed1=0.0;
-	chManSpeed2=0.0;
+//	chManSpeed1=0.0;
+//	chManSpeed2=0.0;
+//  0308 changed as below
+  chManSpeed1=50.0;
+  chManSpeed2=100.0;
 	chManSpeed3=100.0;
 
 	chDirectAttitudeControlSpeed1=99998.0;
@@ -1291,6 +1294,7 @@ YSBOOL FsAirplaneProperty::CheckTouchDownAndLayOnGround(double &gDistance)
 
 		if(YSTRUE!=diggingIn)
 		{
+/*
 			if(airspeed>chManSpeed2)
 			{
 				staPosition.SetY(staPosition.y()+deepest);
@@ -1302,6 +1306,7 @@ YSBOOL FsAirplaneProperty::CheckTouchDownAndLayOnGround(double &gDistance)
 				dy=deepest*(airspeed-chManSpeed1)/(chManSpeed2-chManSpeed1);
 				staPosition.SetY(staPosition.y()+dy);
 			}
+*/
 		}
 
 
@@ -1780,6 +1785,19 @@ void FsAirplaneProperty::CalculateTranslation(const double &dt)
 	}
 	staPosition=staPosition+staVelocity*dt;
 // printf("V %s\n",staVelocity.Txt());
+
+// 260315 fixed
+if(IsOnGround()==YSTRUE)
+{
+//    staVelocity = staVelocity - (staVelocity*staGndNormal)*staGndNormal;
+  const double vn=staVelocity*staGndNormal;
+      if(vn<0.0)
+      {
+          staVelocity = staVelocity - vn*staGndNormal;
+      }
+}
+// till here
+
 }
 
 void FsAirplaneProperty::CalculateRotationalAcceleration(void)
@@ -2169,7 +2187,8 @@ void FsAirplaneProperty::CalculateGround(const double &dt)
 				}
 				else
 				{
-					staVelocity.MulY(-0.6);
+//20260308					staVelocity.MulY(-0.6);
+					staVelocity.SetY(0.0);
 				}
 			}
 			else // if(chClass==FSCL_HELICOPTER)
@@ -4676,7 +4695,7 @@ YSBOOL FsAirplaneProperty::GetShouldJettisonWeapon(void) const
 
 YSRESULT FsAirplaneProperty::ToggleShouldJettisonWeapon(void)
 {
-	ctlShouldJettisonWeapon = YsNot(ctlShouldJettisonWeapon);
+	ctlShouldJettisonWeapon = (ctlShouldJettisonWeapon==YSTRUE ? YSFALSE : YSTRUE);
 	return YSOK;
 }
 
