@@ -1,7 +1,5 @@
 # YSFlight Community Edition (YSCE) mod version 1.0
 
-# YSCE Edition Mod Version 1.0
-
 ## Updates
 
 - Improved aircraft bouncing behavior on downward sloped runways
