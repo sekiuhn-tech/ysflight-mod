@@ -9,7 +9,12 @@ This is a personal modification based on YSCE.
 - Fixed an issue where "6" could not be selected in the ILS/VOR selection screen
 - Added game speed adjustment feature  
   - `-` key: 0.5x speed  
-  - `+` key: 2.0x speed  
+  - `+` key: 2.0x speed
+
+## Build
+
+A Binary build for Apple Silicon Mac can be downloaded from
+https://github.com/sekiuhn-tech/ysflight-mod/releases/tag/v1.0
 
 ## Demo
 
