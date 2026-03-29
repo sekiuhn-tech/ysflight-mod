@@ -18,7 +18,9 @@ https://github.com/sekiuhn-tech/ysflight-mod/releases/tag/v1.0
 
 ## Demo
 
-A demonstration video showing a successful takeoff from a sloped runway will be added later.
+A demonstration video showing a successful takeoff from a sloped runway
+
+https://youtu.be/Ka5Uhf_5SXk
 
 --
 
