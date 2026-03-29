@@ -6,6 +6,7 @@ This is a personal modification based on YSCE.
 
 - Improved aircraft bouncing behavior on downward-sloped runways
 - Improved tailstrike detection on sloped runways
+- Enhanced braking force when a plane is moving on the ground
 - Fixed an issue where "6" could not be selected in the ILS/VOR selection screen
 - Added game speed adjustment feature  
   - `-` key: 0.5x speed  
