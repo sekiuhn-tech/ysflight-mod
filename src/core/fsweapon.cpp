@@ -992,10 +992,32 @@ void FsWeapon::Move(const double &dt,const double &cTime,const FsWeather &weathe
 
 				double r;
 				r=atan2(sqrt(tpos.x()*tpos.x()+tpos.y()*tpos.y()),tpos.z());
-				if(r<radar || ((type==FSWEAPON_AIM9X || type==FSWEAPON_AIM120) && YSTRUE==IsOwnerStillHaveTarget()))
+//--260411
+        double effectiveRadar = radar;
+        double effectiveMobility = mobility;
+
+        if(type == FSWEAPON_AIM120)
+        {
+          effectiveRadar *= 1.1;
+          effectiveMobility *= 0.8;
+        }
+           else if(type == FSWEAPON_AIM9X)
+        {
+           effectiveRadar *= 1.0;
+           effectiveMobility *= 1.0;
+        }  else {
+
+           effectiveRadar *= 0.9;
+           effectiveMobility *= 0.7;
+        }
+
+//				if(r<radar || ((type==FSWEAPON_AIM9X || type==FSWEAPON_AIM120) && YSTRUE==IsOwnerStillHaveTarget()))
+				if(r<effectiveRadar || type==FSWEAPON_AIM120 && YSTRUE==IsOwnerStillHaveTarget())
 				{
 					double maxMovement;
-					maxMovement=mobility*dt;
+//					maxMovement=mobility*dt;
+					maxMovement=effectiveMobility*dt;
+//260411--
 
 					double yaw,pit;
 					yaw=atan2(-tpos.x(),tpos.z());

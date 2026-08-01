@@ -508,6 +508,11 @@ YSBOOL FsExistence::TestTailStrike(YsVec3 &collisionPosInLocalCoordinate) const
 			const double ny=terrainNom.y();
 			const double nz=terrainNom.z();
 
+//260328
+        YSBOOL found = YSFALSE;
+        double bestDepth = 10000.0;
+        YsVec3 bestLocalPos;
+//260328
 			for(auto vtHd : collPtr->AllVertex())
 			{
 				YsVec3 pos;
@@ -516,15 +521,26 @@ YSBOOL FsExistence::TestTailStrike(YsVec3 &collisionPosInLocalCoordinate) const
 				const double pxnx=pos.x()*nx;
 				const double pznz=pos.z()*nz;
 				const double py=(on-pxnx-pznz)/ny;
+//
+        const double depth = pos.y() - py; 
+        
+        if(depth < bestDepth)
+        {
+					  const YsShellVertex *vtx=collPtr->GetVertex(vtHd);
+            bestDepth = depth;
+            bestLocalPos = vtx->GetPosition();
+            found = YSTRUE;
+        }
 
-				if(pos.y()<py-0.2)   // 0.2 (^_^;)
+       }
+				if(found == YSTRUE && bestDepth < -0.3)   // 260327 衝突判定を緩くした。
+//				if(pos.y()<py-0.2)   // 0.2 (^_^;)
 				{
-					const YsShellVertex *vtx=collPtr->GetVertex(vtHd);
-					collisionPosInLocalCoordinate=vtx->GetPosition();
+					collisionPosInLocalCoordinate = bestLocalPos;
 					return YSTRUE;
 				}
 			}
-		}
+
 	}
 
 	return YSFALSE;

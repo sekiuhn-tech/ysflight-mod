@@ -189,6 +189,9 @@ int FsGetKeycodeFromString(const char str[]);
 class FsFlightControl
 {
 public:
+//260402 added
+  void ResetViewStep(void);
+//260402 till here
 	static void PrepareJoystickPolygonModel(void);
 
 	FsFlightControl();
@@ -257,6 +260,10 @@ public:
 
 	int pov;
 	double viewHdg,viewPch;
+//260401
+  int viewStepH, viewStepP;
+  YSBOOL prevLookForward,prevLookBack,prevLookLeft,prevLookRight,prevLookUp,prevLookDown;
+//
 
 	YSRESULT ProcessButtonFunction(const double &currentTime,class FsExistence *existence,FSBUTTONFUNCTION fnc);
 	void CycleNav(void);

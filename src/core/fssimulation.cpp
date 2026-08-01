@@ -169,6 +169,9 @@ FsSimulation::FsSimulation(FsWorld *w) : airplaneList(FsAirplaneAllocator),groun
 	pause=YSFALSE;
 	canContinue=YSTRUE;
 
+//260322
+  timeScale = 1.0; //initialization
+//
 	escKeyCount=0;
 	currentTime=0.0;
 	aircraftTroubleTimer=0.0;
@@ -2531,7 +2534,9 @@ void FsSimulation::SimulateOneStep(
 	if(pause!=YSTRUE)
 	{
 		double deltaTime=YsSmaller(passedTime,3.0);
-
+//260322
+  deltaTime *= timeScale; // e.g. If 2.0, speed will be 2x.
+//
 		std::vector <std::function <void()> > taskArray;
 		taskArray.push_back(std::bind(&FsSimulation::SimCacheFieldElevation,this));
 		   // SimCacheFieldElevation should come first.  Otherwise, when passedTime is large,
@@ -3975,8 +3980,13 @@ void FsSimulation::SimCheckTailStrike(void)
 				{
 					if(air==GetPlayerAirplane())
 					{
+//0327 comment outed
+					if(untransformed.z()<-YsAbs(untransformed.x())*2.0)   //260327 added 
+          {
 						AddTimedMessage("Tail Strike!");
-						air->Prop().BouncePitchByTailStrike();
+//						air->Prop().BouncePitchByTailStrike();
+          }                                                     //260327 added
+//
 					}
 				}
 				else
@@ -4852,8 +4862,16 @@ void FsSimulation::SimControlByUser(const double &dt,FSUSERCONTROL userControl)
 
 			if(0!=userInput.pov)
 			{
-				double newH=relViewAtt.h()+dh*dt;
-				double newP=YsBound(relViewAtt.p()+dp*dt,-YsPi/2.0,YsPi/2.0);
+//200403 added
+const double speed=10.0;  // ←ここを大きくする
+
+double newH=relViewAtt.h()+dh*dt*speed;
+double newP=YsBound(relViewAtt.p()+dp*dt*speed,-YsPi/2.0,YsPi/2.0);
+//200403 till here
+//260403 comment outed
+//				double newH=relViewAtt.h()+dh*dt;
+//				double newP=YsBound(relViewAtt.p()+dp*dt,-YsPi/2.0,YsPi/2.0);
+//
 				relViewAtt.SetH(newH);
 				relViewAtt.SetP(newP);
 				relViewAtt.SetB(0.0);
@@ -5305,6 +5323,25 @@ void FsSimulation::SimProcessRawKey(int rawKey)
 			replayMode=FSREPLAY_PLAY;
 		}
 		break;
+//260322 added
+
+case FSKEY_PLUS:
+    timeScale *= 2.0;
+    if(timeScale > 8.0)
+    {
+        timeScale = 8.0;
+    }
+    break;
+
+case FSKEY_MINUS:
+    timeScale *= 0.5;
+    if(timeScale < 0.125)
+    {
+        timeScale = 0.125;
+    }
+    break;
+
+//
 	}
 	// Here timeMarker is updated, but it does not affect
 	// anything while flying.
@@ -6606,6 +6643,17 @@ void FsSimulation::SimDrawScreen(
 		char str[256];
 		sprintf(str,"%.2lf FPS",fps);
 		FsDrawString(0,hei-2,str,YsWhite());
+
+//#260320 added
+FsAirplane *playerPlane=GetPlayerAirplane();
+if(playerPlane!=NULL)
+    {
+//        sprintf(str,"dy %.21f",playerPlane->Prop().DebugValue);
+        sprintf(str,"timeScale %.2lf",timeScale);
+        FsDrawString(0,hei-16,str,YsWhite());
+    }
+//till here
+
 	}
 
 
@@ -12143,6 +12191,9 @@ void FsSimulation::ViewingControl(FSBUTTONFUNCTION fnc,FSUSERCONTROL userControl
 			const FsExistence *playerObj=GetPlayerObject();
 			if(playerObj!=NULL)
 			{
+        //260402 added
+        userInput.ResetViewStep();
+        //260402till here
 				YsArray <ViewModeAndIndex> viewModeAndIndex;
 				viewModeAndIndex.Increment();
 				viewModeAndIndex.Last().Set(FSCOCKPITVIEW,0);

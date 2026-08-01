@@ -102,6 +102,9 @@ private:
 	double lastViewMagUser;
 
 public:
+//260322
+  double timeScale;
+//
 	enum FSSIMULATIONSTATE
 	{
 		FSSIMSTATE_CENTERJOYSTICK,

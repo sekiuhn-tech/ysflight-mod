@@ -335,8 +335,8 @@ void FsAirplaneProperty::Initialize(void)
 //	chManSpeed1=0.0;
 //	chManSpeed2=0.0;
 //  0308 changed as below
-  chManSpeed1=50.0;
-  chManSpeed2=100.0;
+  chManSpeed1=100.0;
+  chManSpeed2=110.0;
 	chManSpeed3=100.0;
 
 	chDirectAttitudeControlSpeed1=99998.0;
@@ -1294,7 +1294,8 @@ YSBOOL FsAirplaneProperty::CheckTouchDownAndLayOnGround(double &gDistance)
 
 		if(YSTRUE!=diggingIn)
 		{
-/*
+// 260315 reactivated
+/* 260318
 			if(airspeed>chManSpeed2)
 			{
 				staPosition.SetY(staPosition.y()+deepest);
@@ -1366,7 +1367,11 @@ YSBOOL FsAirplaneProperty::CheckTouchDownAndLayOnGround(double &gDistance)
 		{
 			dy=YsGreater(staFootAtMainGearR.y()-right.y(),dy);
 		}
-		staPosition.SetY(staPosition.y()+dy);
+// 260323
+//		staPosition.SetY(staPosition.y()+dy);
+    DebugValue = dy;
+		staPosition.SetY(staPosition.y() + 0.65*dy);
+//
 		RemakeMatrix();
 		return YSTRUE;
 	}
@@ -1783,20 +1788,28 @@ void FsAirplaneProperty::CalculateTranslation(const double &dt)
 	{
 		staVelocity=staVelocity+(staTotalAerodynamicForce+staTotalGravityForce)/GetTotalWeight()*dt;
 	}
-	staPosition=staPosition+staVelocity*dt;
-// printf("V %s\n",staVelocity.Txt());
 
 // 260315 fixed
 if(IsOnGround()==YSTRUE)
 {
 //    staVelocity = staVelocity - (staVelocity*staGndNormal)*staGndNormal;
   const double vn=staVelocity*staGndNormal;
-      if(vn<0.0)
+// Apply normal-velocity correction only when descending.
+// On uphill slopes, vn can be negative even during normal ground roll,
+// which caused excessive correction and loss of steering.
+      if(vn<0.0 && staVelocity.y()< -0.15)  //260327 
       {
-          staVelocity = staVelocity - vn*staGndNormal;
+          const double k=0.95;
+          staVelocity = staVelocity - (k*vn)*staGndNormal;
+//          DebugValue = staGndNormal.y(); //260320 added
       }
+//      staPosition -= 0.01*staGndNormal;  
+// 260322 まずは弱く
 }
 // till here
+
+	staPosition=staPosition+staVelocity*dt;
+// printf("V %s\n",staVelocity.Txt());
 
 }
 
@@ -2129,27 +2142,49 @@ void FsAirplaneProperty::CalculateGround(const double &dt)
 				if(rnd<dt/0.2)
 				{
 					double v;
+//--260405
+         const double maxShakeSpeed=29.0*0.514444;  // 29 kt ≒ 14.92 m/s
+         const double maxExcess=maxShakeSpeed-gndSpeedThr;
+//260405--
 					v=GetVelocity()-gndSpeedThr;
+//--260405
+            if(v>maxExcess)
+            {
+                v=maxExcess;
+            }
+            if(v<0.0)
+            {
+                v=0.0;
+            }
+//260405--
+
 					if(staAttitude.p()>0.0)
 					{
-						staVPitch=-YsDegToRad(v*4.0);
+//						staVPitch=-YsDegToRad(v*4.0);
+						staVPitch=-YsDegToRad(v*2.0);
 					}
 					else
 					{
-						staVPitch=YsDegToRad(v*4.0);
+//						staVPitch=YsDegToRad(v*4.0);
+						staVPitch=YsDegToRad(v*2.0);
 					}
 					if(staAttitude.b()>0.0)
 					{
-						staVRoll=-YsDegToRad(v*5.0);
+//						staVRoll=-YsDegToRad(v*5.0);
+						staVRoll=-YsDegToRad(v*2.5);
 					}
 					else
 					{
-						staVRoll=YsDegToRad(v*5.0);
+//						staVRoll=YsDegToRad(v*5.0);
+						staVRoll=YsDegToRad(v*2.5);
 					}
 				}
 			}
 			else
 			{
+//--260495
+        staVPitch=0.0;
+//260405--
 				staVRoll=0.0;
 			}
 		}
@@ -5777,7 +5812,17 @@ const double FsAirplaneProperty::GetBrakeMovingRate(void) const
 
 const double FsAirplaneProperty::CalculateForceByBrake(const double brakeControl) const
 {
-	return chBrakeConst*brakeControl;
+//	return chBrakeConst*brakeControl;
+  //260329
+    double f = chBrakeConst * brakeControl;
+
+    if(IsOnGround()==YSTRUE)
+    {
+        f *= 2.2;  // ←ここ調整（まずは1.5〜2.0くらい）
+    }
+
+    return f;
+  //260329
 }
 
 const double &FsAirplaneProperty::GetFlap(void) const
@@ -6529,8 +6574,13 @@ void FsAirplaneProperty::FireMissileByRecord(FSWEAPONTYPE wpnType)
 
 YSRESULT FsAirplaneProperty::ToggleRadarRange(int dir)
 {
-	const int nChoice=6;
-	const double rangeChoice[nChoice]={0.0,5.0,10.0,25.0,50.0,100.0};
+// 260406 modified
+//	const int nChoice=6;
+	const int nChoice=8;
+//	const double rangeChoice[nChoice]={0.0,5.0,10.0,25.0,50.0,100.0};
+	const double rangeChoice[nChoice]={0.0,5.0,10.0,25.0,50.0,100.0,300.0,500.0};
+//
+
 
 	if(0<=dir)
 	{

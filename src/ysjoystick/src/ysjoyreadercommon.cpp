@@ -33,13 +33,21 @@ double YsJoyReaderAxis::GetCalibratedValue(void) const
 
 void YsJoyReaderAxis::CaptureCenter(void)
 {
-	calibCenter=value;
+//--260405
+//	calibCenter=value;
+//260405--
 }
 
 void YsJoyReaderAxis::BeginCaptureMinMax(void)
 {
-	calibMin=calibCenter+1000;
-	calibMax=calibCenter-1000;
+//--260405  comment outed
+//	calibMin=calibCenter+1000;
+//	calibMax=calibCenter-1000;
+//260405--
+//--260405 fixed
+	calibMin=32767;
+	calibMax=-32768;
+//260405--
 }
 
 void YsJoyReaderAxis::CaptureMinMax(void)
@@ -56,6 +64,13 @@ void YsJoyReaderAxis::CaptureMinMax(void)
 
 void YsJoyReaderAxis::CenterFromMinMax(void)
 {
+//--260405 added
+	if(calibMax-calibMin<10000)
+	{
+		calibMin=-32768;
+		calibMax=32767;
+	}
+//260405 --
 	calibCenter=(calibMin+calibMax)/2;
 }
 

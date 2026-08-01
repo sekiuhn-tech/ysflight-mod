@@ -113,6 +113,25 @@ void FsHorizontalRadar::DrawBasic(
 	YsColor col;
 	const int mkSize=3;
 
+//--260407
+  unsigned int nav1Key=YSNULLHASHKEY;
+  unsigned int nav2Key=YSNULLHASHKEY;
+
+  if(NULL!=sim->GetPlayerAirplane())
+  {
+    nav1Key=sim->GetPlayerAirplane()->Prop().GetVorStationKey(0);
+    nav2Key=sim->GetPlayerAirplane()->Prop().GetVorStationKey(1);
+  }
+
+//static int once=0;
+//if(0==once)
+//{
+//  once=1;
+//  fprintf(stderr,"nav1Key=%u nav2Key=%u\n",nav1Key,nav2Key);
+//}
+
+//260407--
+
 	//draw radar bounding box
 	FsDrawRect(x1,y1,x2,y2,YsGreen(),YSFALSE);
 
@@ -170,6 +189,7 @@ void FsHorizontalRadar::DrawBasic(
 
 			if(YsCheckInsideBoundingBox2(prj,w1,w2)==YSTRUE)
 			{
+//260407 original ys code is comment outed
 				if(withRespectTo.iff==gnd->iff)
 				{
 					col=YsWhite();
@@ -178,7 +198,7 @@ void FsHorizontalRadar::DrawBasic(
 				{
 					col=YsGreen();
 				}
-
+//--260407
 				FsDrawX((int)prj.x(),(int)prj.y(),mkSize,col);
 			}
 		}
@@ -259,6 +279,42 @@ void FsHorizontalRadar::DrawBasic(
 			}
 		}
 	}
+
+//--260407
+gnd=NULL;
+while((gnd=sim->FindNextGround(gnd))!=NULL)
+{
+  if(gnd->IsAlive()==YSTRUE && gnd->Prop().IsNonGameObject()!=YSTRUE)
+  {
+    YsVec3 pos;
+    YsVec2 prj;
+
+    ref.MulInverse(pos,gnd->GetPosition(),1.0);
+    pos*=mag;
+
+    prj.Set(pos.x(),-pos.z());
+    prj+=wc;
+
+    if(YsCheckInsideBoundingBox2(prj,w1,w2)==YSTRUE)
+    {
+      const unsigned int gndKey=FsExistence::GetSearchKey(gnd);
+
+      if(gndKey==nav1Key && gndKey==nav2Key)
+      {
+        FsDrawX((int)prj.x(),(int)prj.y(),mkSize+3,YsMagenta());
+      }
+      else if(gndKey==nav1Key)
+      {
+        FsDrawX((int)prj.x(),(int)prj.y(),mkSize+3,YsRed());
+      }
+      else if(gndKey==nav2Key)
+      {
+        FsDrawX((int)prj.x(),(int)prj.y(),mkSize+3,YsBlue());
+      }
+    }
+  }
+}
+//260407--
 
 	const FsWeapon *wpn;
 	wpn=NULL;

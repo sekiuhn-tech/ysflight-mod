@@ -25,7 +25,7 @@ fsguimaincanvas.h
 fsguisiminfodialog.h
 )
 
-find_package(CURL CONFIG REQUIRED)
+find_package(CURL REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
 add_library(${TARGET_NAME} ${SRCS} ${HEADERS})

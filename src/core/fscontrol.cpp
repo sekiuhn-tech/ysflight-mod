@@ -84,6 +84,17 @@ void FsFlightControl::Initialize(void)
 	viewHdg=0.0;
 	viewPch=0.0;
 
+//260401
+  viewStepH = 0;
+  viewStepP = 0;
+  prevLookForward=YSFALSE;
+  prevLookBack=YSFALSE;
+  prevLookLeft=YSFALSE;
+  prevLookRight=YSFALSE;
+  prevLookUp=YSFALSE;
+  prevLookDown=YSFALSE;
+//260401--
+
 	ctlTurretHdg=0.0;
 	ctlTurretPch=0.0;
 }
@@ -583,6 +594,16 @@ YSRESULT FsFlightControl::ReadControl(const FsControlAssignment &ctlAssign,FsJoy
 	return ReadControl(ctlAssign,pJoy,joy);
 }
 
+//260402 added
+void FsFlightControl::ResetViewStep(void)
+{
+  viewStepH=0;
+  viewStepP=0;
+  viewHdg=0.0;
+  viewPch=0.0;
+}
+//260402 till here
+
 YSRESULT FsFlightControl::ReadControl
     (const FsControlAssignment &ctlAssign,FsJoystick pJoy[FsMaxNumJoystick],FsJoystick joy[FsMaxNumJoystick])
 {
@@ -662,6 +683,10 @@ YSRESULT FsFlightControl::ReadControl
 		}
 	}
 
+//260403
+    YSBOOL povAxisActive=YSFALSE;
+//
+
 	// viewHdg, viewPch may be overridden in SetControlAxis
 	// It may happen if POV is explicitly specified in ctlassign.cfg
 	double ctlViewX=0.0;
@@ -669,14 +694,23 @@ YSRESULT FsFlightControl::ReadControl
 	if(PollControlAxis(ctlAssign,ctlViewX,YSTRUE,YSTRUE,FSAXF_POVX,joy)==YSTRUE)
 	{
 		viewHdg=ctlViewX*YsPi/2.0;
+//260403
+    povAxisActive=YSTRUE;
+//
 	}
 	if(PollControlAxis(ctlAssign,ctlViewX,YSTRUE,YSTRUE,FSAXF_POVX_180DEG,joy)==YSTRUE)
 	{
 		viewHdg=ctlViewX*YsPi;
+//260403
+    povAxisActive=YSTRUE;
+//
 	}
 	if(PollControlAxis(ctlAssign,ctlViewY,YSTRUE,YSTRUE,FSAXF_POVY,joy)==YSTRUE)
 	{
 		viewPch=ctlViewY*YsPi/2.0;
+//260403
+    povAxisActive=YSTRUE;
+//
 	}
 
                                       // defRev  2side
@@ -753,7 +787,8 @@ YSRESULT FsFlightControl::ReadControl
 		ctlSpoiler=(spoilerHold==YSTRUE ? 1.0 : 0.0);
 	}
 
-
+//260401 comment outed
+/*
 	int vx,vy,vz;
 	YsVec3 viewVec;
 	YsAtt3 viewAtt;
@@ -798,6 +833,101 @@ YSRESULT FsFlightControl::ReadControl
 		viewHdg=viewAtt.h();
 		viewPch=viewAtt.p();
 	}
+*/
+
+//260402 new codes
+  const double stepH=YsPi/4.0;   // 45 deg
+  const double stepP=YsPi/12.0;  // 15 deg
+
+  const YSBOOL lookForwardNow=ctlAssign.IsButtonPressed(FSBTF_LOOKFORWARD,joy);
+  const YSBOOL lookBackNow=ctlAssign.IsButtonPressed(FSBTF_LOOKBACK,joy);
+  const YSBOOL lookLeftNow=ctlAssign.IsButtonPressed(FSBTF_LOOKLEFT,joy);
+  const YSBOOL lookRightNow=ctlAssign.IsButtonPressed(FSBTF_LOOKRIGHT,joy);
+  const YSBOOL lookUpNow=ctlAssign.IsButtonPressed(FSBTF_LOOKUP,joy);
+  const YSBOOL lookDownNow=ctlAssign.IsButtonPressed(FSBTF_LOOKDOWN,joy);
+
+  const YSBOOL lookForwardPrev=prevLookForward;
+  const YSBOOL lookBackPrev=prevLookBack;
+  const YSBOOL lookLeftPrev=prevLookLeft;
+  const YSBOOL lookRightPrev=prevLookRight;
+  const YSBOOL lookUpPrev=prevLookUp;
+  const YSBOOL lookDownPrev=prevLookDown;
+
+  if(lookForwardPrev!=YSTRUE && lookForwardNow==YSTRUE)
+  {
+      viewStepH=0;
+      viewStepP=0;
+      pov=1;
+  }
+  if(lookBackPrev!=YSTRUE && lookBackNow==YSTRUE)
+  {
+      viewStepH=4;
+      viewStepP=0;
+      pov=5;
+  }
+  if(lookLeftPrev!=YSTRUE && lookLeftNow==YSTRUE)
+  {
+      viewStepH++;
+      if(viewStepH>4)
+      {
+          viewStepH=4;
+      }
+      pov=7;
+  }
+  if(lookRightPrev!=YSTRUE && lookRightNow==YSTRUE)
+  {
+      viewStepH--;
+      if(viewStepH<-4)
+      {
+          viewStepH=-4;
+      }
+      pov=3;
+  }
+  if(lookUpPrev!=YSTRUE && lookUpNow==YSTRUE)
+  {
+      viewStepP++;
+      if(viewStepP>3)
+      {
+          viewStepP=3;
+      }
+  }
+  if(lookDownPrev!=YSTRUE && lookDownNow==YSTRUE)
+  {
+      viewStepP--;
+      if(viewStepP<-2)
+      {
+          viewStepP=-2;
+      }
+  }
+
+//const YSBOOL lookKeyActive=
+//    (lookForwardNow==YSTRUE ||
+//     lookBackNow==YSTRUE ||
+//     lookLeftNow==YSTRUE ||
+//     lookRightNow==YSTRUE ||
+//     lookUpNow==YSTRUE ||
+//     lookDownNow==YSTRUE ? YSTRUE : YSFALSE);
+
+//if(lookKeyActive == YSTRUE)
+//{
+//    viewHdg=(double)viewStepH*stepH;
+//    viewPch=(double)viewStepP*stepP;
+//}
+
+if(povAxisActive!=YSTRUE)
+{
+    viewHdg=(double)viewStepH*stepH;
+    viewPch=(double)viewStepP*stepP;
+}
+
+  prevLookForward=lookForwardNow;
+  prevLookBack=lookBackNow;
+  prevLookLeft=lookLeftNow;
+  prevLookRight=lookRightNow;
+  prevLookUp=lookUpNow;
+  prevLookDown=lookDownNow;
+
+//260402 new codes till here 
 
 	return YSOK;
 }
@@ -1752,8 +1882,10 @@ void FsControlAssignment::SetDefaultKeyAssign(void)
 	AddKeyAssignment(FSKEY_J,       FSBTF_LOOKUP);
 	AddKeyAssignment(FSKEY_N,       FSBTF_LOOKDOWN);
 	AddKeyAssignment(FSKEY_DOT,     FSBTF_REVERSETHRUST);
-	AddKeyAssignment(FSKEY_PLUS, FSBTF_VGWEXTEND);
-	AddKeyAssignment(FSKEY_MINUS, FSBTF_VGWRETRACT);
+//  260326 fixed
+//	AddKeyAssignment(FSKEY_PLUS, FSBTF_VGWEXTEND);
+//	AddKeyAssignment(FSKEY_MINUS, FSBTF_VGWRETRACT);
+//
 	AddKeyAssignment(FSKEY_R,       FSBTF_FLAPUP);
 	AddKeyAssignment(FSKEY_F,       FSBTF_FLAPDOWN);
 	AddKeyAssignment(FSKEY_O,       FSBTF_OPENSUBWINDOWMENU);

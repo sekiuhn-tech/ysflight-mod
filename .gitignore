@@ -1,3 +1,29 @@
-build
-.vscode
+# build系
+build/
+build*/
+
+# editor / OS
+.vscode/
+.DS_Store
+
+# runtime
 runtime/ys_timestamp.txt
+
+# binaries
+*.o
+*.obj
+*.dylib
+*.so
+*.a
+*.app
+
+# backup files
+*.org
+*.bak
+*.tmp
+
+# source backup variants
+*.cpp_*
+*.h_*
+*.cpp.[0-9]*
+*.h.[0-9]*

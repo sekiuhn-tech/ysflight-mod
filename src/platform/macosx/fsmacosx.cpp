@@ -23,6 +23,31 @@
 
 #include "fsmacosx_alert.h"
 
+//260404
+#include <stdio.h>
+
+static int joyLogCount=0;
+
+static void JoyLog(const char *msg)
+{
+  FILE *fp=fopen("/Users/sekiuhn/output/ysjoy.log","a");
+  if(NULL!=fp)
+  {
+    fprintf(fp,"[%d] %s\n",joyLogCount++,msg);
+    fclose(fp);
+  }
+}
+
+static void JoyLogInt(const char *label,int v)
+{
+  FILE *fp=fopen("/Users/sekiuhn/output/ysjoy.log","a");
+  if(NULL!=fp)
+  {
+    fprintf(fp,"[%d] %s%d\n",joyLogCount++,label,v);
+    fclose(fp);
+  }
+}
+//
 
 
 // fsmacosxwrapper.o >>
@@ -131,10 +156,10 @@ void FsSetNormalWindow(void)
 }
 
 static YSBOOL firstJoyRead=YSTRUE;
-
 static int nJoystick=0;
 static YsJoyReader joystick[FsMaxNumJoystick];
 
+//260404 moto ni modoshita
 static void FsCheckJoyCaps(void)
 {
 	if(firstJoyRead==YSTRUE)
@@ -181,6 +206,9 @@ YSBOOL FsIsJoystickAxisAvailable(int joyId,int joyAxs)
 
 YSRESULT FsPollJoystick(FsJoystick &joy,int joyId)
 {
+// debug log
+  JoyLog("enter FsPollJoystick");
+//
 	int i;
 	for(i=0; i<FsMaxNumJoyAxis; i++)
 	{

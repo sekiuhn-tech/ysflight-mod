@@ -62,6 +62,9 @@ public:
 class FsAirplaneProperty : public FsVehicleProperty
 {
 public:
+//260320 added
+double DebugValue;
+//#till here
 	enum
 	{
 		MaxNumGun=8,

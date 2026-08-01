@@ -152,6 +152,10 @@ void FsSubMenu::ProcessSubMenu(class FsSimulation *sim,class FsFlightConfig &cfg
 		default:
 			break;
 		case FSSUBMENU_SELECTVOR:
+//260321
+//fprintf(stderr,"SELECTVOR rawKey=%d ctlNavId=%d subMenuBase=%d\n",rawKey,ctlNavId,subMenuBase);
+//fflush(stderr);
+//
 			if(rawKey==FSKEY_ESC)
 			{
 				SetSubMenu(sim,FSSUBMENU_WAITKEYRELEASE);
@@ -187,6 +191,13 @@ void FsSubMenu::ProcessSubMenu(class FsSimulation *sim,class FsFlightConfig &cfg
 							if(0<=sel && sel<vorInRange.GetN())
 							{
 								unsigned gndKey=(NULL!=vorInRange[sel] ? FsExistence::GetSearchKey(vorInRange[sel]) : YSNULLHASHKEY);
+//260407
+//    fprintf(stderr,"SELECT nav=%d sel=%d gndKey=%u name=%s\n",
+//            ctlNavId,
+//            sel,
+//            gndKey,
+//            (NULL!=vorInRange[sel] ? (const char *)vorInRange[sel]->name : "(null)"));
+//
 								playerPlane->Prop().SetVorStation(ctlNavId,gndKey);
 								SetSubMenu(sim,FSSUBMENU_WAITKEYRELEASE);
 							}

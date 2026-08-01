@@ -13,7 +13,6 @@
 
 #include "../ysjoyreader.h"
 
-
 class YsJoyReaderElement::PlatformDependentInfo
 {
 public:
@@ -129,6 +128,16 @@ static void AddAxis(YsJoyReader &reader,int axisId,IOHIDElementRef elem,int min,
 		reader.axis[axisId].min=min;
 		reader.axis[axisId].max=max;
 
+//--260404
+//FILE *fp=fopen("/tmp/ysjoy_gui.log","a");
+//if(fp)
+//{
+//	fprintf(fp,"ADDAXIS axis=%d min=%d max=%d scaledMin=%d scaledMax=%d center=%d\n",
+//		axisId,min,max,scaledMin,scaledMax,(min+max)/2);
+//	fclose(fp);
+//}
+//260404--
+
 		reader.axis[axisId].calibCenter=(min+max)/2;
 		reader.axis[axisId].calibMin=min;
 		reader.axis[axisId].calibMax=max;
@@ -143,23 +152,64 @@ static void AddAxis(YsJoyReader &reader,int axisId,IOHIDElementRef elem,int min,
 
 int YsJoyReader::SetUp(int joyId,const SetUpInfo &info)
 {
+
+//26/0404
+//auto access=IOHIDCheckAccess(kIOHIDRequestTypeListenEvent);
+//FILE *fp=fopen("/tmp/ysjoy_gui.log","a");
+//if(fp)
+//{
+//    fprintf(fp,"SetUp access=%d joyId=%d\n",(int)access,joyId);
+//    fclose(fp);
+//}
+
+//
+
 	// https://stackoverflow.com/questions/58670785/which-api-is-behind-the-privacy-feature-input-monitoring-in-the-security-syste
-	if(kIOHIDAccessTypeGranted!=IOHIDCheckAccess(kIOHIDRequestTypeListenEvent))
-	{
-		if(true!=requestIssued)
-		{
-			IOHIDRequestAccess(kIOHIDRequestTypeListenEvent);
-			requestIssued=true;
-		}
-		return 0;
-	}
+//	if(kIOHIDAccessTypeDenied==IOHIDCheckAccess(kIOHIDRequestTypeListenEvent))
+//	{
+//		if(true!=requestIssued)
+//		{
+//			IOHIDRequestAccess(kIOHIDRequestTypeListenEvent);
+//			requestIssued=true;
+//		}
+//		return 0;
+//	}
 
 
 	this->joyId=joyId;
 
 	if(info.hidDev!=NULL)
 	{
+
+//260404
+//FILE *fp11=fopen("/tmp/ysjoy_gui.log","a");
+//  if(fp11)
+//  {
+//    fprintf(fp11,"BEFORE_COPYMATCH joyId=%d hidDev=%p\n",joyId,info.hidDev);
+//    fclose(fp11);
+//  }
+//--
+
 		CFArrayRef elemAry=IOHIDDeviceCopyMatchingElements(info.hidDev,NULL,0);
+
+//260404
+//FILE *fp12=fopen("/tmp/ysjoy_gui.log","a");
+//  if(fp12)
+//  {
+//    fprintf(fp12,"AFTER_COPYMATCH elemAry=%p\n",elemAry);
+//    fclose(fp12);
+//  }
+//--
+
+//260404/
+if (NULL==elemAry)
+{
+
+return 0;
+
+}
+//--
+
 		int nElem=(int)CFArrayGetCount(elemAry);
 		bool isMouse=false,isJoystick=false,isKeyboard=false,isGamePad=false;
 
@@ -398,15 +448,15 @@ int YsJoyReader::SetUp(int joyId,const SetUpInfo &info)
 void YsJoyReader::Read(void)
 {
 	// https://stackoverflow.com/questions/58670785/which-api-is-behind-the-privacy-feature-input-monitoring-in-the-security-syste
-	if(kIOHIDAccessTypeGranted!=IOHIDCheckAccess(kIOHIDRequestTypeListenEvent))
-	{
-		if(true!=requestIssued)
-		{
-			IOHIDRequestAccess(kIOHIDRequestTypeListenEvent);
-			requestIssued=true;
-		}
-		return;
-	}
+//	if(kIOHIDAccessTypeDenied==IOHIDCheckAccess(kIOHIDRequestTypeListenEvent))
+//	{
+//		if(true!=requestIssued)
+//		{
+//			IOHIDRequestAccess(kIOHIDRequestTypeListenEvent);
+//			requestIssued=true;
+//		}
+//		return;
+//	}
 
 	int i;
 	IOHIDValueRef valueRef;
@@ -544,18 +594,32 @@ int YsJoyReader::ReadCalibInfoFile(FILE *fp)
 
 int YsJoyReaderSetUpJoystick(int &nJoystick,YsJoyReader joystick[],int maxNumJoystick)
 {
+
+//260404
+//auto access=IOHIDCheckAccess(kIOHIDRequestTypeListenEvent);
+//FILE *fp=fopen("/tmp/ysjoy_gui.log","a");
+//if(fp)
+//{
+//    fprintf(fp,"SetUpJoystick access=%d denied=%d granted=%d\n",
+//        (int)access,
+//        (int)kIOHIDAccessTypeDenied,
+//        (int)kIOHIDAccessTypeGranted);
+//    fclose(fp);
+//}
+//
+
 	nJoystick=0;
 
 	// https://stackoverflow.com/questions/58670785/which-api-is-behind-the-privacy-feature-input-monitoring-in-the-security-syste
-	if(kIOHIDAccessTypeGranted!=IOHIDCheckAccess(kIOHIDRequestTypeListenEvent))
-	{
-		if(true!=requestIssued)
-		{
-			IOHIDRequestAccess(kIOHIDRequestTypeListenEvent);
-			requestIssued=true;
-		}
-		return 0;
-	}
+//	if(kIOHIDAccessTypeDenied==IOHIDCheckAccess(kIOHIDRequestTypeListenEvent))
+//	{
+//		if(true!=requestIssued)
+//		{
+//			IOHIDRequestAccess(kIOHIDRequestTypeListenEvent);
+//			requestIssued=true;
+//		}
+//		return 0;
+//	}
 
 	if(NULL==YsJoyReader::PlatformDependentInfo::hidManager)
 	{
@@ -567,7 +631,10 @@ int YsJoyReaderSetUpJoystick(int &nJoystick,YsJoyReader joystick[],int maxNumJoy
 		IOHIDManagerSetDeviceMatching(YsJoyReader::PlatformDependentInfo::hidManager,NULL);  // Just enumrate all devices
 		IOHIDManagerScheduleWithRunLoop(YsJoyReader::PlatformDependentInfo::hidManager,CFRunLoopGetMain(),kCFRunLoopDefaultMode);
 		IOHIDManagerOpen(YsJoyReader::PlatformDependentInfo::hidManager,kIOHIDOptionsTypeNone);
-
+//  260404
+    usleep(200000);
+//
+/*  260404 comment outed
 		CFSetRef copyOfDevices=IOHIDManagerCopyDevices(YsJoyReader::PlatformDependentInfo::hidManager);
 		if(NULL!=YsJoyReader::PlatformDependentInfo::devArray)
 		{
@@ -582,7 +649,65 @@ int YsJoyReaderSetUpJoystick(int &nJoystick,YsJoyReader joystick[],int maxNumJoy
 		printf("%d devices found\n",(int)nDev);
 
 		CFRelease(copyOfDevices);
+*/
+//  260404
+CFSetRef copyOfDevices=IOHIDManagerCopyDevices(YsJoyReader::PlatformDependentInfo::hidManager);
 
+if(NULL!=YsJoyReader::PlatformDependentInfo::devArray)
+{
+    CFRelease(YsJoyReader::PlatformDependentInfo::devArray);
+    YsJoyReader::PlatformDependentInfo::devArray=nullptr;
+
+}
+
+
+YsJoyReader::PlatformDependentInfo::devArray=CFArrayCreateMutable(kCFAllocatorDefault,0,&kCFTypeArrayCallBacks);
+
+// ★ここだけ追加（NULLガード）
+if(NULL!=copyOfDevices && NULL!=YsJoyReader::PlatformDependentInfo::devArray)
+{
+    CFSetApplyFunction(copyOfDevices,CFSetCopyCallBack,(void *)YsJoyReader::PlatformDependentInfo::devArray);
+}
+
+CFIndex nDev=0;
+
+// ★これも安全化
+if(NULL!=YsJoyReader::PlatformDependentInfo::devArray)
+{
+    nDev=CFArrayGetCount(YsJoyReader::PlatformDependentInfo::devArray);
+}
+
+//260404
+//FILE *fp2=fopen("/tmp/ysjoy_gui.log","a");
+//if(fp2)
+//{
+//    fprintf(fp2,"nDev=%d\n",(int)nDev);
+//    fclose(fp2);
+//}
+//
+
+printf("%d devices found\n",(int)nDev);
+
+//260404
+//return nJoystick;
+//
+
+// ★これも安全化
+if(NULL!=copyOfDevices)
+{
+    CFRelease(copyOfDevices);
+}
+//
+
+
+//260404
+//FILE *fp3=fopen("/tmp/ysjoy_gui.log","a");
+//if(fp3)
+//{
+//    fprintf(fp3,"BEFORE_IF nDev=%d\n",(int)nDev);
+//    fclose(fp3);
+//}
+//
 
 
 		if(0<nDev)
@@ -596,46 +721,96 @@ int YsJoyReaderSetUpJoystick(int &nJoystick,YsJoyReader joystick[],int maxNumJoy
 			};
 			LocIdHidDevPair *sorter=new LocIdHidDevPair [nDev];
 
+//260404
+//FILE *fp4=fopen("/tmp/ysjoy_gui.log","a");
+//if(fp4)
+//{
+//    fprintf(fp4,"ENTERED_IF\n");
+//    fclose(fp4);
+//}
+//
+
+
+
 			for(i=0; i<nDev; i++)
 			{
 				sorter[i].hidDev=(IOHIDDeviceRef)CFArrayGetValueAtIndex(YsJoyReader::PlatformDependentInfo::devArray,i);
 				sorter[i].locId=0;
-				IOHIDDeviceScheduleWithRunLoop(sorter[i].hidDev,CFRunLoopGetMain(),kCFRunLoopDefaultMode);
 
-				CFTypeRef locIdRef=IOHIDDeviceGetProperty(sorter[i].hidDev,CFSTR(kIOHIDLocationIDKey));
-				if(NULL!=locIdRef && CFNumberGetTypeID()==CFGetTypeID(locIdRef))
-				{
-					CFNumberGetValue((CFNumberRef)locIdRef,kCFNumberSInt32Type,&sorter[i].locId);
-					printf("Location ID=%08x\n",(int)sorter[i].locId);
-				}
-				else
-				{
-					printf("Cannot acquire location ID.\n");
-				}
-			}
+YsJoyReader::SetUpInfo info;
+info.hidDev=sorter[i].hidDev;
+
+//FILE *fp9=fopen("/tmp/ysjoy_gui.log","a");
+//if(fp9)
+//{
+//  fprintf(fp9,"BEFORE_SETUP_LOOP i=%d hidDev=%p\n",i,info.hidDev);
+//  fclose(fp9);
+//}
+
+int r=joystick[nJoystick].SetUp(nJoystick,info);
+
+if(r!=0)
+{
+    nJoystick++;
+}
+
+//FILE *fp10=fopen("/tmp/ysjoy_gui.log","a");
+//if(fp10)
+//{
+//  fprintf(fp10,"AFTER_SETUP_LOOP i=%d r=%d\n",i,r);
+//  fclose(fp10);
+//}
+
+       }
+    delete [] sorter;
+
+//--
+
+//				IOHIDDeviceScheduleWithRunLoop(sorter[i].hidDev,CFRunLoopGetMain(),kCFRunLoopDefaultMode);
+
+//				CFTypeRef locIdRef=IOHIDDeviceGetProperty(sorter[i].hidDev,CFSTR(kIOHIDLocationIDKey));
+//				if(NULL!=locIdRef && CFNumberGetTypeID()==CFGetTypeID(locIdRef))
+//				{
+//					CFNumberGetValue((CFNumberRef)locIdRef,kCFNumberSInt32Type,&sorter[i].locId);
+//					printf("Location ID=%08x\n",(int)sorter[i].locId);
+//				}
+//				else
+//				{
+//					printf("Cannot acquire location ID.\n");
+//				}
+//			}
 
 			// Cutting corner.  I could use Quick Sort.
 			// But, it is unlikely there are thousands of HID devices connected to
 			// the computer.  Bubble sort must be good enough.
-			int j;
-			for(i=0; i<nDev; i++)
-			{
-				for(j=i+1; j<nDev; j++)
-				{
-					if(sorter[j].locId<sorter[i].locId)
-					{
-						LocIdHidDevPair swp;
-						swp=sorter[i];
-						sorter[i]=sorter[j];
-						sorter[j]=swp;
-					}
-				}
-			}
+//  			int j;
 
+//
+//				for(j=i+1; j<nDev; j++)
+//				{
+//					if(sorter[j].locId<sorter[i].locId)
+//					{
+//						LocIdHidDevPair swp;
+//						swp=sorter[i];
+//						sorter[i]=sorter[j];
+//						sorter[j]=swp;
+//					}
+//				}
+//			}
+
+/*
 			for(i=0; i<nDev && nJoystick<maxNumJoystick; i++)
 			{
 				YsJoyReader::SetUpInfo info;
 				info.hidDev=sorter[i].hidDev;
+//260404
+FILE *fp6=fopen("/tmp/ysjoy_gui.log","a");
+        if(fp6)
+        {
+          fprintf(fp6,"BEFORE_SETUP i=%d nJoystick=%d hidDev=%p\n",i,nJoystick,info.hidDev);
+          fclose(fp6);
+        }
+//
 				if(joystick[nJoystick].SetUp(nJoystick,info)!=0)
 				{
 					nJoystick++;
@@ -644,6 +819,7 @@ int YsJoyReaderSetUpJoystick(int &nJoystick,YsJoyReader joystick[],int maxNumJoy
 			}
 
 			delete [] sorter;
+*/
 		}
 	}
 
