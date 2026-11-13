@@ -24,7 +24,7 @@ Fixed ILS/VOR selection bug (key 6).
 
 Added game speed control (- / +).
 
-Added incremental viewpoint adjustment using keyboard controls.
+Replaced the original POV switching system with incremental viewpoint adjustment using keyboard controls.
 
 ## Original Project
 
