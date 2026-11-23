@@ -48,19 +48,19 @@ This repository is not an official YSCE project.
 
 ## Weapons and Radar
 
-Adjusted missile guidance and maneuverability for different missile types.
+- Adjusted missile guidance and maneuverability for different missile types.
 
-Modified AIM-120 tracking characteristics.
+- Modified AIM-120 tracking characteristics.
 
-Adjusted tracking behavior for other missile types.
+- Adjusted tracking behavior for other missile types.
 
-Extended selectable radar display ranges.
+- Extended selectable radar display ranges.
 
-macOS Compatibility and Build System
+- macOS Compatibility and Build System
 
-Fixed the 6 key mapping issue affecting ILS/VOR selection through the modified Public Library.
+- Fixed the 6 key mapping issue affecting ILS/VOR selection through the modified Public Library.
 
-Updated CMake configurations for newer build environments.
+- Updated CMake configurations for newer build environments.
 
 # Related Project
 
