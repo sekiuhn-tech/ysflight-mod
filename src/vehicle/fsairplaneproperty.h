@@ -62,9 +62,9 @@ public:
 class FsAirplaneProperty : public FsVehicleProperty
 {
 public:
-//260320 added
-double DebugValue[99]; //261102 arreied
-//#till here
+//260320: Diagnostic values for ground-contact behavior.
+double DebugValue[99]; //261102: Converted to an array.
+// End of diagnostic-value declarations.
 	enum
 	{
 		MaxNumGun=8,

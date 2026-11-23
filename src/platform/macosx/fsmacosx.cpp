@@ -159,7 +159,7 @@ static YSBOOL firstJoyRead=YSTRUE;
 static int nJoystick=0;
 static YsJoyReader joystick[FsMaxNumJoystick];
 
-//260404 moto ni modoshita
+//260404: Restored the original joystick capability check.
 static void FsCheckJoyCaps(void)
 {
 	if(firstJoyRead==YSTRUE)
@@ -206,7 +206,7 @@ YSBOOL FsIsJoystickAxisAvailable(int joyId,int joyAxs)
 
 YSRESULT FsPollJoystick(FsJoystick &joy,int joyId)
 {
-// debug log
+// Log joystick polling for diagnostics.
   JoyLog("enter FsPollJoystick");
 //
 	int i;

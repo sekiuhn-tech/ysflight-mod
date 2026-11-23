@@ -533,7 +533,7 @@ YSBOOL FsExistence::TestTailStrike(YsVec3 &collisionPosInLocalCoordinate) const
         }
 
        }
-				if(found == YSTRUE && bestDepth < -0.3)   // 260327 衝突判定を緩くした。
+				if(found == YSTRUE && bestDepth < -0.3)   // 260327: Relaxed the collision-detection threshold.
 //				if(pos.y()<py-0.2)   // 0.2 (^_^;)
 				{
 					collisionPosInLocalCoordinate = bestLocalPos;

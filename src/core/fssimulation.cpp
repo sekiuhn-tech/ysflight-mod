@@ -170,7 +170,7 @@ FsSimulation::FsSimulation(FsWorld *w) : airplaneList(FsAirplaneAllocator),groun
 	canContinue=YSTRUE;
 
 //260322
-  timeScale = 1.0; //initialization
+  timeScale = 1.0; // Initialize the simulation speed multiplier.
 //
 	escKeyCount=0;
 	currentTime=0.0;
@@ -3980,7 +3980,7 @@ void FsSimulation::SimCheckTailStrike(void)
 				{
 					if(air==GetPlayerAirplane())
 					{
-//0327 comment outed
+//0327: Disabled the tail-strike pitch bounce.
 					if(untransformed.z()<-YsAbs(untransformed.x())*2.0)   //260327 added 
           {
 						AddTimedMessage("Tail Strike!");
@@ -4862,13 +4862,13 @@ void FsSimulation::SimControlByUser(const double &dt,FSUSERCONTROL userControl)
 
 			if(0!=userInput.pov)
 			{
-//200403 added
-const double speed=1.0;  // ←ここを大きくする
+//200403: Adjust viewpoint rotation speed.
+const double speed=1.0;  // Increase this value to rotate the viewpoint faster.
 
 double newH=relViewAtt.h()+dh*dt*speed;
 double newP=YsBound(relViewAtt.p()+dp*dt*speed,-YsPi/2.0,YsPi/2.0);
-//200403 till here
-//260403 comment outed
+//200403: End of viewpoint rotation speed adjustment.
+//260403: Previous viewpoint rotation calculation disabled.
 //				double newH=relViewAtt.h()+dh*dt;
 //				double newP=YsBound(relViewAtt.p()+dp*dt,-YsPi/2.0,YsPi/2.0);
 //
@@ -5323,7 +5323,7 @@ void FsSimulation::SimProcessRawKey(int rawKey)
 			replayMode=FSREPLAY_PLAY;
 		}
 		break;
-//260322 added
+//260322: Add +/- key controls for the simulation speed.
 
 case FSKEY_PLUS:
     timeScale *= 2.0;
@@ -6644,12 +6644,12 @@ void FsSimulation::SimDrawScreen(
 		sprintf(str,"%.2lf FPS",fps);
 		FsDrawString(0,hei-2,str,YsWhite());
 
-//#260320 added
+//260320: Show the simulation speed overlay.
 FsAirplane *playerPlane=GetPlayerAirplane();
 if(playerPlane!=NULL)
     {
 
-//261029 for debugging
+//261029: Diagnostic display (disabled).
 //sprintf(str,"vn %.6f  timeScale %.2f",
 //        playerPlane->Prop().DebugValue,timeScale);
 
@@ -6697,7 +6697,7 @@ sprintf(str,"N %.2f L %.2f R %.2f d %.2f state %.2f dist %.2f vnOut %.2f vnIn %.
         sprintf(str,"timeScale %.2lf",timeScale);
         FsDrawString(0,hei-16,str,YsWhite());
     }
-//till here
+// End of the simulation-speed overlay.
 
 	}
 
@@ -12236,7 +12236,7 @@ void FsSimulation::ViewingControl(FSBUTTONFUNCTION fnc,FSUSERCONTROL userControl
 			const FsExistence *playerObj=GetPlayerObject();
 			if(playerObj!=NULL)
 			{
-        //260402 added
+        //260402: Reset stepped viewpoint angles when changing view modes.
         userInput.ResetViewStep();
         //260402till here
 				YsArray <ViewModeAndIndex> viewModeAndIndex;

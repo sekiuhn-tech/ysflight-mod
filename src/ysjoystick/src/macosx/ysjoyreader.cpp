@@ -663,7 +663,7 @@ if(NULL!=YsJoyReader::PlatformDependentInfo::devArray)
 
 YsJoyReader::PlatformDependentInfo::devArray=CFArrayCreateMutable(kCFAllocatorDefault,0,&kCFTypeArrayCallBacks);
 
-// ★ここだけ追加（NULLガード）
+// Guard against a null device set or destination array.
 if(NULL!=copyOfDevices && NULL!=YsJoyReader::PlatformDependentInfo::devArray)
 {
     CFSetApplyFunction(copyOfDevices,CFSetCopyCallBack,(void *)YsJoyReader::PlatformDependentInfo::devArray);
@@ -671,7 +671,7 @@ if(NULL!=copyOfDevices && NULL!=YsJoyReader::PlatformDependentInfo::devArray)
 
 CFIndex nDev=0;
 
-// ★これも安全化
+// Guard against a null device array.
 if(NULL!=YsJoyReader::PlatformDependentInfo::devArray)
 {
     nDev=CFArrayGetCount(YsJoyReader::PlatformDependentInfo::devArray);
@@ -692,7 +692,7 @@ printf("%d devices found\n",(int)nDev);
 //return nJoystick;
 //
 
-// ★これも安全化
+// Release the device set only if it is non-null.
 if(NULL!=copyOfDevices)
 {
     CFRelease(copyOfDevices);

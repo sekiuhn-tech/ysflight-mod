@@ -594,7 +594,7 @@ YSRESULT FsFlightControl::ReadControl(const FsControlAssignment &ctlAssign,FsJoy
 	return ReadControl(ctlAssign,pJoy,joy);
 }
 
-//260402 added
+//260402: Add helper to reset stepped view angles.
 void FsFlightControl::ResetViewStep(void)
 {
   viewStepH=0;
@@ -602,7 +602,7 @@ void FsFlightControl::ResetViewStep(void)
   viewHdg=0.0;
   viewPch=0.0;
 }
-//260402 till here
+//260402: End of view-reset helper.
 
 YSRESULT FsFlightControl::ReadControl
     (const FsControlAssignment &ctlAssign,FsJoystick pJoy[FsMaxNumJoystick],FsJoystick joy[FsMaxNumJoystick])
@@ -787,7 +787,7 @@ YSRESULT FsFlightControl::ReadControl
 		ctlSpoiler=(spoilerHold==YSTRUE ? 1.0 : 0.0);
 	}
 
-//260401 comment outed
+//260401: Disabled the previous continuous-view input logic.
 /*
 	int vx,vy,vz;
 	YsVec3 viewVec;
@@ -835,7 +835,7 @@ YSRESULT FsFlightControl::ReadControl
 	}
 */
 
-//260402 new codes
+//260402: Stepped viewpoint controls.
   const double stepH=YsPi/4.0;   // 45 deg
 //  const double stepP=YsPi/12.0;  // 15 deg
 //261030
@@ -859,11 +859,11 @@ YSRESULT FsFlightControl::ReadControl
   {
       viewStepH=0;
       viewStepP=0;
-//      pov=1; //261110 comment outed
+//      pov=1; //261110: Disabled in favor of the held-key update below.
   }
 
 
-// 261110 for F7 continuously change while pressing
+//261110: Update the external-view direction while the key is held.
 if(lookForwardNow==YSTRUE)
 {
     pov=1;
@@ -874,10 +874,10 @@ if(lookForwardNow==YSTRUE)
   {
       viewStepH=4;
       viewStepP=0;
-//      pov=5; //261110 comment outed
+//      pov=5; //261110: Disabled in favor of the held-key update below.
   }
 
-// 261110 for F7 continuously change while pressing
+//261110: Update the external-view direction while the key is held.
 if(lookBackNow==YSTRUE)
 {
     pov=5;
@@ -894,7 +894,7 @@ if(lookBackNow==YSTRUE)
 //      pov=7; //261110
   }
 
-// 261110 for F7 continuously change while pressing
+//261110: Update the external-view direction while the key is held.
 if(lookLeftNow==YSTRUE)
 {
     pov=7;
@@ -911,7 +911,7 @@ if(lookLeftNow==YSTRUE)
 //      pov=3; //261110
   }
 
-// 261110 for F7 continuously change while pressing
+//261110: Update the external-view direction while the key is held.
 if(lookRightNow==YSTRUE)
 {
     pov=3;
@@ -970,7 +970,7 @@ if(povAxisActive!=YSTRUE)
   prevLookUp=lookUpNow;
   prevLookDown=lookDownNow;
 
-//260402 new codes till here 
+//260402: End of stepped-view controls.
 
 	return YSOK;
 }
@@ -1925,7 +1925,7 @@ void FsControlAssignment::SetDefaultKeyAssign(void)
 	AddKeyAssignment(FSKEY_J,       FSBTF_LOOKUP);
 	AddKeyAssignment(FSKEY_N,       FSBTF_LOOKDOWN);
 	AddKeyAssignment(FSKEY_DOT,     FSBTF_REVERSETHRUST);
-//  260326 fixed
+//260326: Free the +/- keys for simulation-speed control.
 //	AddKeyAssignment(FSKEY_PLUS, FSBTF_VGWEXTEND);
 //	AddKeyAssignment(FSKEY_MINUS, FSBTF_VGWRETRACT);
 //

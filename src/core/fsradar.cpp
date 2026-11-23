@@ -189,7 +189,7 @@ void FsHorizontalRadar::DrawBasic(
 
 			if(YsCheckInsideBoundingBox2(prj,w1,w2)==YSTRUE)
 			{
-//260407 original ys code is comment outed
+//260407: Color ground targets according to their IFF.
 				if(withRespectTo.iff==gnd->iff)
 				{
 					col=YsWhite();

@@ -544,7 +544,7 @@ void FsGuiCalibrateJoystickAxisDialog::Make(int axis,int phase)
 				SetTransparency(YSFALSE);
 
 				joystick.axis[axis  ].BeginCaptureMinMax();
-//260405 commentouted
+//260405: Disabled calibration of the second stick axis here.
 //				joystick.axis[axis+1].BeginCaptureMinMax();
 
 				Fit();
@@ -623,14 +623,14 @@ void FsGuiCalibrateJoystickAxisDialog::Make(int axis,int phase)
 			case PHASE_FIRST_CENTER:
 			case PHASE_SECOND_CENTER:
 				joystick.Read();
-//260405 commentcouted
+//260405: Disabled center capture for both stick axes.
 //				joystick.axis[axis  ].CaptureCenter();
 //				joystick.axis[axis+1].CaptureCenter();
 				break;
 			case PHASE_LIMIT:
 				joystick.Read();
 				joystick.axis[axis  ].CaptureMinMax();
-//260405 commentouted
+//260405: Disabled min/max capture for the second stick axis.
 //				joystick.axis[axis+1].CaptureMinMax();
 				break;
 			}
@@ -696,7 +696,7 @@ int FsGuiCalibrateJoystickAxisDialog::FetchFirstPhase(int axis)
 					Make(axis,phase);
 					break;
 				case PHASE_SECOND_CENTER:
-//--260405 fixed
+//260405: Advance to the next axis.
 					axis+=1;
 //260405--
 					break;

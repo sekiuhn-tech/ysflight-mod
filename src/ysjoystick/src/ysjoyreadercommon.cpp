@@ -40,11 +40,11 @@ void YsJoyReaderAxis::CaptureCenter(void)
 
 void YsJoyReaderAxis::BeginCaptureMinMax(void)
 {
-//--260405  comment outed
+//260405: Disabled the previous center-based limit initialization.
 //	calibMin=calibCenter+1000;
 //	calibMax=calibCenter-1000;
 //260405--
-//--260405 fixed
+//260405: Initialize the full raw axis range.
 	calibMin=32767;
 	calibMax=-32768;
 //260405--
@@ -64,7 +64,7 @@ void YsJoyReaderAxis::CaptureMinMax(void)
 
 void YsJoyReaderAxis::CenterFromMinMax(void)
 {
-//--260405 added
+//260405: Use the full axis range if calibration is too narrow.
 	if(calibMax-calibMin<10000)
 	{
 		calibMin=-32768;

@@ -189,9 +189,9 @@ int FsGetKeycodeFromString(const char str[]);
 class FsFlightControl
 {
 public:
-//260402 added
+//260402: Declare the stepped-view reset helper.
   void ResetViewStep(void);
-//260402 till here
+//260402: End of view-reset declaration.
 	static void PrepareJoystickPolygonModel(void);
 
 	FsFlightControl();

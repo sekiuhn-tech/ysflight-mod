@@ -337,7 +337,7 @@ void FsAirplaneProperty::Initialize(void)
 
 //	chManSpeed1=0.0;
 //	chManSpeed2=0.0;
-//  0308 changed as below
+//0308: Adjusted the maneuvering-speed thresholds below.
   chManSpeed1=100.0;
   chManSpeed2=110.0;
 	chManSpeed3=100.0;
@@ -1018,7 +1018,7 @@ void FsAirplaneProperty::Move(
 	CalculateCarrierLanding(dt,carrierList);
 	CalculateWeather(dt,weather);
 
-//  261106 comment outed
+//261106: Disabled the earlier ground-force call at this location.
 //	CalculateGround(dt);
 
 //--261106
@@ -1049,7 +1049,7 @@ CalculateGround(dt);
 
 if(IsOnGround()==YSTRUE)
 {
-    const double maxDeltaVy=1.0; // 1ステップ当たりの仮の上限
+    const double maxDeltaVy=1.0; // Tentative maximum vertical-velocity change per simulation step.
     const double deltaVy=staVelocity.y()-vBefore.y();
 
     if(deltaVy>maxDeltaVy)
@@ -1296,7 +1296,7 @@ YSBOOL FsAirplaneProperty::CheckTouchDownAndLayOnGround(double &gDistance)
 	const double gDistRight=right.y()-staFootAtMainGearR.y();
 	const double gDistWheel=nose.y()-staFootAtWheel.y();
 
-// 261103 debugging
+//261103: Ground-contact diagnostics (disabled).
 //DebugValue[0]=-gDistWheel;
 //DebugValue[1]=-gDistLeft;
 //DebugValue[2]=-gDistRight;
@@ -1351,7 +1351,7 @@ YSBOOL FsAirplaneProperty::CheckTouchDownAndLayOnGround(double &gDistance)
 
 		if(YSTRUE!=diggingIn)
 		{
-// 260315 reactivated
+//260315: Earlier touchdown-correction experiment (currently disabled).
 /* 260318
 			if(airspeed>chManSpeed2)
 			{
@@ -1403,11 +1403,11 @@ YSBOOL FsAirplaneProperty::CheckTouchDownAndLayOnGround(double &gDistance)
 //--261108
     YsAtt3 attBefore=staAttitude;
 
-// 従来どおり目標姿勢を計算
+// Calculate the target attitude using the original method.
 staAttitude.SetTwoVector(ev,uv);
 YsAtt3 attTarget=staAttitude;
 
-// 現在姿勢から目標姿勢へ20%だけ近づける
+// Move 30% of the way from the current attitude to the target attitude.
 const double k=0.3;
 
 staAttitude.Set(
@@ -1451,11 +1451,11 @@ staAttitude.Set(
 // 260323
 //		staPosition.SetY(staPosition.y()+dy);
 //    DebugValue = dy;
-// 261030 current better setting
+//261030: Previously preferred position-correction setting.
 //		staPosition.SetY(staPosition.y() + 0.65*dy);
 //
 
-// 261101 new correction
+//261101: Correct ground penetration along the ground normal.
   double d=0.0;
 
     d=YsGreater(d,(staFootAtWheel-nose)*staGndNormal);
@@ -1463,9 +1463,9 @@ staAttitude.Set(
     d=YsGreater(d,(staFootAtMainGearR-right)*staGndNormal);
 
     staPosition+=d*staGndNormal;
-// till here
+// End of ground-penetration correction.
 
-// 261102 debugging
+//261102: Ground-contact diagnostics (disabled).
 //const double dN=staFootAtWheel.y()-nose.y();
 //const double dL=staFootAtMainGearL.y()-left.y();
 //const double dR=staFootAtMainGearR.y()-right.y();
@@ -1475,7 +1475,7 @@ staAttitude.Set(
 //DebugValue[2]=dR;
 //DebugValue[3]=d;
 //DebugValue[4]=(double)staState;
-// till here
+// End of diagnostic values.
 
 	RemakeMatrix();
 
@@ -1911,7 +1911,7 @@ void FsAirplaneProperty::CalculateTranslation(const double &dt)
 
 //DebugValue[8]=staVelocity*staGndNormal; //261103
 
-// 260315 fixed
+//260315: Ground-normal velocity correction.
 if(IsOnGround()==YSTRUE)
 {
   const double vn=staVelocity*staGndNormal;
@@ -1925,7 +1925,7 @@ if(IsOnGround()==YSTRUE)
 //          DebugValue = staGndNormal.y(); //260320 added
       }
 }
-// till here
+// End of ground-normal velocity correction.
 //DebugValue[6]=staVelocity*staGndNormal; //261103
 
 	staPosition=staPosition+staVelocity*dt;
@@ -2341,7 +2341,7 @@ void FsAirplaneProperty::CalculateGround(const double &dt)
     }
 
 // --261108
-// 地面に向かう法線方向の速度だけを除去
+// Remove only the velocity component directed into the ground.
 //    const double vn=staVelocity*staGndNormal;
 
 //   if(vn<0.0)
@@ -2350,7 +2350,7 @@ void FsAirplaneProperty::CalculateGround(const double &dt)
 //    }
 // 261108--
 
-// 261108 comment outed
+//261108: Previous ground-normal correction disabled.
 //		if(staVelocity.y()<0.0)
 //		{
 
@@ -2362,12 +2362,12 @@ void FsAirplaneProperty::CalculateGround(const double &dt)
 //			{
 //				if(staV<GetEstimatedLandingSpeed()*1.25)
 //				{
-//					staVelocity.SetY(0.0); //261108 comment outed
+//					staVelocity.SetY(0.0); //261108: Previous ground-normal correction disabled.
 //				}
 //				else
 //				{
 //20260308					staVelocity.MulY(-0.6); //original 
-//					staVelocity.SetY(0.0); //261108 comment outed
+//					staVelocity.SetY(0.0); //261108: Previous ground-normal correction disabled.
 //				}
 //			}
 //			else // if(chClass==FSCL_HELICOPTER)
@@ -5962,7 +5962,7 @@ const double FsAirplaneProperty::CalculateForceByBrake(const double brakeControl
 
     if(IsOnGround()==YSTRUE)
     {
-        f *= 2.2;  // ←ここ調整（まずは1.5〜2.0くらい）
+        f *= 2.2;  // Brake-force multiplier; adjust as needed.
     }
 
     return f;
@@ -6718,7 +6718,7 @@ void FsAirplaneProperty::FireMissileByRecord(FSWEAPONTYPE wpnType)
 
 YSRESULT FsAirplaneProperty::ToggleRadarRange(int dir)
 {
-// 260406 modified
+//260406: Extended the radar-range choices.
 //	const int nChoice=6;
 	const int nChoice=8;
 //	const double rangeChoice[nChoice]={0.0,5.0,10.0,25.0,50.0,100.0};
