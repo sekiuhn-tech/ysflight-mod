@@ -1,3 +1,6 @@
+//--261108
+#include <cmath>
+//261108--
 #include <ysclass.h>
 #include <ysunitconv.h>
 #include <ysport.h>
@@ -1014,7 +1017,53 @@ void FsAirplaneProperty::Move(
 
 	CalculateCarrierLanding(dt,carrierList);
 	CalculateWeather(dt,weather);
-	CalculateGround(dt);
+
+//  261106 comment outed
+//	CalculateGround(dt);
+
+//--261106
+const YsVec3 vBefore=staVelocity;
+
+//const YsVec3 vBeforeGround = staVelocity;//261108
+
+CalculateGround(dt);
+
+//DebugValue[13]=staVelocity.y();
+//DebugValue[15]=staVelocity*staGndNormal;
+
+//--261108
+//const YsVec3 dvGround = staVelocity - vBeforeGround;
+
+//if(dt > YsTolerance)
+//{
+//    DebugValue[22] = dvGround.y() / dt;
+//    DebugValue[22] = YsGreater(DebugValue[22],dvGround.y()/dt);
+//    DebugValue[23] = (dvGround * staGndNormal) / dt;
+
+//const double aGroundN = (dvGround*staGndNormal)/dt;
+
+//DebugValue[23] = YsGreater(DebugValue[23],aGroundN);
+
+//}
+//261108--
+
+if(IsOnGround()==YSTRUE)
+{
+    const double maxDeltaVy=1.0; // 1ステップ当たりの仮の上限
+    const double deltaVy=staVelocity.y()-vBefore.y();
+
+    if(deltaVy>maxDeltaVy)
+    {
+        staVelocity.SetY(vBefore.y()+ deltaVy * 0.1 );
+    }
+}
+//261106--
+
+//CalculateGround(dt);
+
+//DebugValue[14]=staVelocity.y();
+//DebugValue[16]=staVelocity*staGndNormal;
+
 	CalculateStall();
 
 #ifdef CRASHINVESTIGATION_MOVE
@@ -1247,12 +1296,20 @@ YSBOOL FsAirplaneProperty::CheckTouchDownAndLayOnGround(double &gDistance)
 	const double gDistRight=right.y()-staFootAtMainGearR.y();
 	const double gDistWheel=nose.y()-staFootAtWheel.y();
 
+// 261103 debugging
+//DebugValue[0]=-gDistWheel;
+//DebugValue[1]=-gDistLeft;
+//DebugValue[2]=-gDistRight;
+//DebugValue[4]=(double)staState;
+// -- 261103
+
 	if(YsTolerance<gDistWheel &&
 	   YsTolerance<gDistLeft &&
 	   YsTolerance<gDistRight)
 	{
 		gDistance=YsSmaller(gDistWheel,gDistLeft);
 		gDistance=YsSmaller(gDistance,gDistRight);
+//    DebugValue[5]=gDistance; //261103
 		return YSFALSE;
 	}
 	else
@@ -1341,12 +1398,33 @@ YSBOOL FsAirplaneProperty::CheckTouchDownAndLayOnGround(double &gDistance)
 		lateral=leftrt-rightrt;
 		uv=lateral^ev;
 
-		staAttitude.SetTwoVector(ev,uv);
+//		staAttitude.SetTwoVector(ev,uv);
+
+//--261108
+    YsAtt3 attBefore=staAttitude;
+
+// 従来どおり目標姿勢を計算
+staAttitude.SetTwoVector(ev,uv);
+YsAtt3 attTarget=staAttitude;
+
+// 現在姿勢から目標姿勢へ20%だけ近づける
+const double k=0.3;
+
+staAttitude.Set(
+    attBefore.h(),
+    attBefore.p()+k*std::remainder(attTarget.p()-attBefore.p(),2.0*YsPi),
+    attBefore.b()+k*std::remainder(attTarget.b()-attBefore.b(),2.0*YsPi)
+);
+//261108--
 
 		RemakeMatrix();
 
 		staMatrix.Mul(staVelocity,vSave,0.0);
 
+//  261104
+//    DebugValue[10]=staVelocity.y();
+//    staMatrix.Mul(staVelocity,vSave,0.0);
+//    DebugValue[11]=staVelocity.y();
 
 
 		/* Phase 3 Adjust Position */
@@ -1354,6 +1432,8 @@ YSBOOL FsAirplaneProperty::CheckTouchDownAndLayOnGround(double &gDistance)
 		left=staMatrix*chMainGearL;
 		right=staMatrix*chMainGearR;
 
+
+/*
 		dy=0.0;
 		if(nose.y()<staFootAtWheel.y())
 		{
@@ -1367,12 +1447,38 @@ YSBOOL FsAirplaneProperty::CheckTouchDownAndLayOnGround(double &gDistance)
 		{
 			dy=YsGreater(staFootAtMainGearR.y()-right.y(),dy);
 		}
+*/
 // 260323
 //		staPosition.SetY(staPosition.y()+dy);
-    DebugValue = dy;
-		staPosition.SetY(staPosition.y() + 0.65*dy);
+//    DebugValue = dy;
+// 261030 current better setting
+//		staPosition.SetY(staPosition.y() + 0.65*dy);
 //
-		RemakeMatrix();
+
+// 261101 new correction
+  double d=0.0;
+
+    d=YsGreater(d,(staFootAtWheel-nose)*staGndNormal);
+    d=YsGreater(d,(staFootAtMainGearL-left)*staGndNormal);
+    d=YsGreater(d,(staFootAtMainGearR-right)*staGndNormal);
+
+    staPosition+=d*staGndNormal;
+// till here
+
+// 261102 debugging
+//const double dN=staFootAtWheel.y()-nose.y();
+//const double dL=staFootAtMainGearL.y()-left.y();
+//const double dR=staFootAtMainGearR.y()-right.y();
+
+//DebugValue[0]=dN;
+//DebugValue[1]=dL;
+//DebugValue[2]=dR;
+//DebugValue[3]=d;
+//DebugValue[4]=(double)staState;
+// till here
+
+	RemakeMatrix();
+
 		return YSTRUE;
 	}
 }
@@ -1776,6 +1882,18 @@ void FsAirplaneProperty::CalculateForce(void)
 
 void FsAirplaneProperty::CalculateTranslation(const double &dt)
 {
+//DebugValue[9]=staVelocity.y();//261104
+//DebugValue[7]=staVelocity*staGndNormal; //261103
+
+//261108--
+//const YsVec3 acceleration =
+//    (staTotalAerodynamicForce + staTotalGravityForce)
+//    / GetTotalWeight();
+
+//DebugValue[20] = acceleration.y();
+//DebugValue[21] = acceleration * staGndNormal;
+//--261108
+
 	if(staVHorizontal<FsMinimumAirspeed &&
 	   (staBrake>=0.9 || chClass==FSCL_HELICOPTER) &&
 	   IsOnGround()==YSTRUE)
@@ -1789,24 +1907,26 @@ void FsAirplaneProperty::CalculateTranslation(const double &dt)
 		staVelocity=staVelocity+(staTotalAerodynamicForce+staTotalGravityForce)/GetTotalWeight()*dt;
 	}
 
+//DebugValue[17]=staVelocity.y();//261105
+
+//DebugValue[8]=staVelocity*staGndNormal; //261103
+
 // 260315 fixed
 if(IsOnGround()==YSTRUE)
 {
-//    staVelocity = staVelocity - (staVelocity*staGndNormal)*staGndNormal;
   const double vn=staVelocity*staGndNormal;
 // Apply normal-velocity correction only when descending.
 // On uphill slopes, vn can be negative even during normal ground roll,
 // which caused excessive correction and loss of steering.
       if(vn<0.0 && staVelocity.y()< -0.15)  //260327 
       {
-          const double k=0.95;
+          const double k=0.3;
           staVelocity = staVelocity - (k*vn)*staGndNormal;
 //          DebugValue = staGndNormal.y(); //260320 added
       }
-//      staPosition -= 0.01*staGndNormal;  
-// 260322 まずは弱く
 }
 // till here
+//DebugValue[6]=staVelocity*staGndNormal; //261103
 
 	staPosition=staPosition+staVelocity*dt;
 // printf("V %s\n",staVelocity.Txt());
@@ -2192,6 +2312,8 @@ void FsAirplaneProperty::CalculateGround(const double &dt)
 
 	if(CheckTouchDownAndLayOnGround(gDist)==YSTRUE)
 	{
+//261103--
+//--261103
 		if(IsOnGround()!=YSTRUE)
 		{
 			staTDPos=staPPos;
@@ -2212,33 +2334,55 @@ void FsAirplaneProperty::CalculateGround(const double &dt)
 			}
 		}
 
+
 		if(staVelocity.y()<0.0)
-		{
-			if(chClass==FSCL_AIRPLANE)
-			{
-				if(staV<GetEstimatedLandingSpeed()*1.25)
-				{
-					staVelocity.SetY(0.0);
-				}
-				else
-				{
-//20260308					staVelocity.MulY(-0.6);
-					staVelocity.SetY(0.0);
-				}
-			}
-			else // if(chClass==FSCL_HELICOPTER)
-			{
-				staVelocity.SetY(0.0);
-			}
-		}
+    {
+      staVelocity.SetY(0.1 * staVelocity.y());
+    }
+
+// --261108
+// 地面に向かう法線方向の速度だけを除去
+//    const double vn=staVelocity*staGndNormal;
+
+//   if(vn<0.0)
+//   {
+//        staVelocity-= 1.0*vn*staGndNormal;
+//    }
+// 261108--
+
+// 261108 comment outed
+//		if(staVelocity.y()<0.0)
+//		{
+
+//--261109
+//        staVelocity.SetY(0.0);
+//261109--
+
+//			if(chClass==FSCL_AIRPLANE)
+//			{
+//				if(staV<GetEstimatedLandingSpeed()*1.25)
+//				{
+//					staVelocity.SetY(0.0); //261108 comment outed
+//				}
+//				else
+//				{
+//20260308					staVelocity.MulY(-0.6); //original 
+//					staVelocity.SetY(0.0); //261108 comment outed
+//				}
+//			}
+//			else // if(chClass==FSCL_HELICOPTER)
+//			{
+//				staVelocity.SetY(0.0);
+//			}
+//		}
 	}
 
 	if(IsOnGround()==YSTRUE)
 	{
-		// YsVec3 tst;                                         // 2005/10/02
-		// tst=staVelocity;                                   // 2005/10/02
-		// tst.SetY(0.0);  // <- Y component may be non zero.     2005/10/02
-		// staInverseMatrix.Mul(tst,tst,0.0);                 // 2005/10/02
+		// YsVec3 tst;                                         // 2005/10/02 //motomoto
+		// tst=staVelocity;                                   // 2005/10/02  //motomoto
+		// tst.SetY(0.0);  // <- Y component may be non zero.     2005/10/02 //motomoto
+		// staInverseMatrix.Mul(tst,tst,0.0);                 // 2005/10/02  //motomoto
 
 		staInverseMatrix.Mul(staVelocity,staVelocity,0.0); // <- Before 2005/10/02
 
@@ -2260,7 +2404,7 @@ void FsAirplaneProperty::CalculateGround(const double &dt)
 			staVelocity.Set(0.0,staVelocity.y(),-vHorizontal);
 			staMatrix.Mul(staVelocity,staVelocity,0.0);
 
-			// staVelocity.Set(0.0,staVelocity.y(),0.0); <- Before 2005/10/02
+			// staVelocity.Set(0.0,staVelocity.y(),0.0); <- Before 2005/10/02 //motomoto
 		}
 	}
 

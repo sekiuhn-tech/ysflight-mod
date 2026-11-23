@@ -63,7 +63,7 @@ class FsAirplaneProperty : public FsVehicleProperty
 {
 public:
 //260320 added
-double DebugValue;
+double DebugValue[99]; //261102 arreied
 //#till here
 	enum
 	{

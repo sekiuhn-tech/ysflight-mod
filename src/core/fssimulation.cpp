@@ -4863,7 +4863,7 @@ void FsSimulation::SimControlByUser(const double &dt,FSUSERCONTROL userControl)
 			if(0!=userInput.pov)
 			{
 //200403 added
-const double speed=10.0;  // ←ここを大きくする
+const double speed=1.0;  // ←ここを大きくする
 
 double newH=relViewAtt.h()+dh*dt*speed;
 double newP=YsBound(relViewAtt.p()+dp*dt*speed,-YsPi/2.0,YsPi/2.0);
@@ -6648,7 +6648,52 @@ void FsSimulation::SimDrawScreen(
 FsAirplane *playerPlane=GetPlayerAirplane();
 if(playerPlane!=NULL)
     {
-//        sprintf(str,"dy %.21f",playerPlane->Prop().DebugValue);
+
+//261029 for debugging
+//sprintf(str,"vn %.6f  timeScale %.2f",
+//        playerPlane->Prop().DebugValue,timeScale);
+
+//261104
+/*
+sprintf(str,"N %.2f L %.2f R %.2f d %.2f state %.2f dist %.2f vnOut %.2f vnIn %.2f vnForce %.2f staV %.2f vyph2b %.2f vyph2a %2.f vybCG %.2f vyaCG %.2f vnbCG %.2f vnaCG %.2f timeScale %.2f",
+    playerPlane->Prop().DebugValue[0],
+    playerPlane->Prop().DebugValue[1],
+    playerPlane->Prop().DebugValue[2],
+    playerPlane->Prop().DebugValue[3],
+    playerPlane->Prop().DebugValue[4],
+    playerPlane->Prop().DebugValue[5],
+    playerPlane->Prop().DebugValue[6],
+    playerPlane->Prop().DebugValue[7],
+    playerPlane->Prop().DebugValue[8],
+    playerPlane->Prop().DebugValue[9],
+    playerPlane->Prop().DebugValue[10],
+    playerPlane->Prop().DebugValue[11],
+    playerPlane->Prop().DebugValue[13],
+    playerPlane->Prop().DebugValue[14],
+    playerPlane->Prop().DebugValue[15],
+    playerPlane->Prop().DebugValue[16],
+    timeScale);
+*/
+
+//261108
+//sprintf(str,"d %.3f timeScale %.3f",
+//    playerPlane->Prop().DebugValue[3],
+//    timeScale);
+
+//261105
+//sprintf(str,
+//    "vyIn %.3f vyForce %.3f vnIn %.3f vnForce %.3f fyt %.3f fynt %.3f fyg %3.f fyng %3.f timeScale %.3f",
+//    playerPlane->Prop().DebugValue[9],
+//    playerPlane->Prop().DebugValue[17],
+//    playerPlane->Prop().DebugValue[7],
+//    playerPlane->Prop().DebugValue[8],
+//    playerPlane->Prop().DebugValue[20],
+//    playerPlane->Prop().DebugValue[21],
+//    playerPlane->Prop().DebugValue[22],
+//    playerPlane->Prop().DebugValue[23],
+//    timeScale);
+//FsDrawString(0,hei-16,str,YsWhite());
+
         sprintf(str,"timeScale %.2lf",timeScale);
         FsDrawString(0,hei-16,str,YsWhite());
     }

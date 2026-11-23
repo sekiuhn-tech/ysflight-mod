@@ -837,7 +837,9 @@ YSRESULT FsFlightControl::ReadControl
 
 //260402 new codes
   const double stepH=YsPi/4.0;   // 45 deg
-  const double stepP=YsPi/12.0;  // 15 deg
+//  const double stepP=YsPi/12.0;  // 15 deg
+//261030
+  const double stepP=YsPi/10.0;  // 18 deg
 
   const YSBOOL lookForwardNow=ctlAssign.IsButtonPressed(FSBTF_LOOKFORWARD,joy);
   const YSBOOL lookBackNow=ctlAssign.IsButtonPressed(FSBTF_LOOKBACK,joy);
@@ -857,14 +859,31 @@ YSRESULT FsFlightControl::ReadControl
   {
       viewStepH=0;
       viewStepP=0;
-      pov=1;
+//      pov=1; //261110 comment outed
   }
+
+
+// 261110 for F7 continuously change while pressing
+if(lookForwardNow==YSTRUE)
+{
+    pov=1;
+}
+//
+
   if(lookBackPrev!=YSTRUE && lookBackNow==YSTRUE)
   {
       viewStepH=4;
       viewStepP=0;
-      pov=5;
+//      pov=5; //261110 comment outed
   }
+
+// 261110 for F7 continuously change while pressing
+if(lookBackNow==YSTRUE)
+{
+    pov=5;
+}
+//
+
   if(lookLeftPrev!=YSTRUE && lookLeftNow==YSTRUE)
   {
       viewStepH++;
@@ -872,8 +891,16 @@ YSRESULT FsFlightControl::ReadControl
       {
           viewStepH=4;
       }
-      pov=7;
+//      pov=7; //261110
   }
+
+// 261110 for F7 continuously change while pressing
+if(lookLeftNow==YSTRUE)
+{
+    pov=7;
+}
+//
+
   if(lookRightPrev!=YSTRUE && lookRightNow==YSTRUE)
   {
       viewStepH--;
@@ -881,22 +908,38 @@ YSRESULT FsFlightControl::ReadControl
       {
           viewStepH=-4;
       }
-      pov=3;
+//      pov=3; //261110
   }
+
+// 261110 for F7 continuously change while pressing
+if(lookRightNow==YSTRUE)
+{
+    pov=3;
+}
+//
+
   if(lookUpPrev!=YSTRUE && lookUpNow==YSTRUE)
   {
       viewStepP++;
-      if(viewStepP>3)
+//      if(viewStepP>3)
+      if(viewStepP>4)
+//261026
       {
-          viewStepP=3;
+//          viewStepP=3;
+          viewStepP=4;
+//261026
       }
   }
   if(lookDownPrev!=YSTRUE && lookDownNow==YSTRUE)
   {
       viewStepP--;
-      if(viewStepP<-2)
+//      if(viewStepP<-2)
+      if(viewStepP<-3)
+//261026
       {
-          viewStepP=-2;
+//          viewStepP=-2;
+          viewStepP=-3;
+//261026
       }
   }
 
